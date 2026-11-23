@@ -9,15 +9,9 @@ st.set_page_config(page_title="ARPK SmartSpend Pro", page_icon="💰", layout="w
 
 st.markdown("""
     <style>
-    #MainMenu {visibility: hidden !important;}
-    header {visibility: hidden !important;}
-    footer {visibility: hidden !important;}
-    .stDeployButton {display: none !important;}
-    [data-testid="stToolbar"] {display: none !important;}
-    [data-testid="stHeader"] {display: none !important;}
-    [data-testid="manage-app-button"] {display: none !important;}
-    .stAppDeployButton {display: none !important;}
-    div[class*="StatusWidget"] {display: none !important;}
+    #MainMenu, header, footer, .stDeployButton, .stAppDeployButton {display: none !important; visibility: hidden !important;}
+    [data-testid="stToolbar"], [data-testid="stHeader"], [data-testid="manage-app-button"] {display: none !important; visibility: hidden !important;}
+    div[class*="StatusWidget"], iframe[title*="streamlit"] {display: none !important;}
     </style>
 """, unsafe_allow_html=True)
 
@@ -87,11 +81,8 @@ if "logged_in" not in st.session_state:
     st.session_state.user_name = ""
     st.session_state.user_mobile = ""
 
-MONTHS_MAP = {
-    "All Months (सर्व महिने)": 0, "Jan (जानेवारी)": 1, "Feb (फेब्रुवारी)": 2, "Mar (मार्च)": 3,
-    "Apr (एप्रिल)": 4, "May (मे)": 5, "Jun (जून)": 6, "Jul (जुलै)": 7,
-    "Aug (ऑगस्ट)": 8, "Sep (सप्टेंबर)": 9, "Oct (ऑक्टोबर)": 10, "Nov (नोव्हेंबर)": 11, "Dec (डिसेंबर)": 12
-    if not st.session_state.logged_in:
+MONTHS_LIST = ["All Months", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+if not st.session_state.logged_in:
     col1, col2, col3 = st.columns([1, 1.5, 1])
     with col2:
         if os.path.exists(LOGO_FILE):
@@ -180,13 +171,13 @@ else:
         with f1:
             selected_year = st.selectbox("Filter by Year:", ["All Years", 2026, 2027, 2028])
         with f2:
-            selected_month_name = st.selectbox("Filter by Month:", list(MONTHS_MAP.keys()))
+            selected_month_name = st.selectbox("Filter by Month:", MONTHS_LIST)
 
         filtered_df = user_df.copy()
         if selected_year != "All Years":
             filtered_df = filtered_df[filtered_df["Year"] == selected_year]
-        if MONTHS_MAP[selected_month_name] != 0:
-            filtered_df = filtered_df[filtered_df["Month"] == MONTHS_MAP[selected_month_name]]
+        if selected_month_name != "All Months":
+            filtered_df = filtered_df[filtered_df["Month"] == MONTHS_LIST.index(selected_month_name)]
 
         if not filtered_df.empty:
             total_income = filtered_df[filtered_df["Type"] == "Income"]["Amount"].sum()
