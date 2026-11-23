@@ -209,5 +209,3 @@ else:
             if net_balance > 0:
                 st.write(f"🎯 **Savings Goal Progress (₹{net_balance:,.0f} / ₹{savings_goal:,.0f}):**")
                 st.progress(min(net_balance / savings_goal, 1.0))
-
-            if total_expense > monthly_budget:
