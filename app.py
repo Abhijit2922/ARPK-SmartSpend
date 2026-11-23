@@ -123,23 +123,28 @@ else:
     df = load_transactions()
     user_df = df[df["Mobile"] == st.session_state.user_mobile].copy()
 
-    with st.sidebar:
+    # वरचा हेडर: लोगो, नाव आणि Logout बटन (मोबाईलवरही थेट दिसेल!)
+    h1, h2, h3 = st.columns([1, 4, 1.2])
+    with h1:
         if os.path.exists(LOGO_FILE):
-            st.image(LOGO_FILE, width=130)
-        st.title("ARPK SmartSpend")
-        st.success(f"Welcome, **{st.session_state.user_name}**! 👋")
-        st.caption(f"Mobile: {st.session_state.user_mobile}")
-        st.divider()
-        monthly_budget = st.number_input("Monthly Budget (₹):", min_value=500, value=10000, step=500)
-        savings_goal = st.number_input("Savings Goal (₹):", min_value=1000, value=25000, step=1000)
-        st.divider()
+            st.image(LOGO_FILE, width=85)
+    with h2:
+        st.title(f"💰 {st.session_state.user_name}")
+        st.caption(f"ARPK SmartSpend Pro | Mobile: {st.session_state.user_mobile}")
+    with h3:
+        st.write("")
         if st.button("🚪 Logout", use_container_width=True):
             st.session_state.logged_in = False
             st.session_state.user_name = ""
             st.session_state.user_mobile = ""
             st.rerun()
 
-    st.title(f"💰 {st.session_state.user_name} - ARPK SmartSpend Pro")
+    # थेट मुख्य स्क्रीनवरच Budget आणि Savings Goal कमी-जास्त करायचा ऑप्शन!
+    b_col1, b_col2 = st.columns(2)
+    with b_col1:
+        monthly_budget = st.number_input("🎯 Set Monthly Budget (₹):", min_value=500, value=10000, step=500)
+    with b_col2:
+        savings_goal = st.number_input("🏆 Set Savings Goal (₹):", min_value=1000, value=25000, step=1000)
 
     with st.expander("➕ Add Income or Expense (2026 / 2027)", expanded=True):
         c1, c2, c3 = st.columns(3)
