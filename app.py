@@ -9,12 +9,15 @@ st.set_page_config(page_title="ARPK SmartSpend Pro", page_icon="💰", layout="w
 
 st.markdown("""
     <style>
-    #MainMenu {visibility: hidden;}
-    header {visibility: hidden;}
-    footer {visibility: hidden;}
-    .stDeployButton {display:none;}
-    [data-testid="stToolbar"] {visibility: hidden !important;}
-    [data-testid="stHeader"] {visibility: hidden !important;}
+    #MainMenu {visibility: hidden !important;}
+    header {visibility: hidden !important;}
+    footer {visibility: hidden !important;}
+    .stDeployButton {display: none !important;}
+    [data-testid="stToolbar"] {display: none !important;}
+    [data-testid="stHeader"] {display: none !important;}
+    [data-testid="manage-app-button"] {display: none !important;}
+    .stAppDeployButton {display: none !important;}
+    div[class*="StatusWidget"] {display: none !important;}
     </style>
 """, unsafe_allow_html=True)
 
@@ -88,9 +91,7 @@ MONTHS_MAP = {
     "All Months (सर्व महिने)": 0, "Jan (जानेवारी)": 1, "Feb (फेब्रुवारी)": 2, "Mar (मार्च)": 3,
     "Apr (एप्रिल)": 4, "May (मे)": 5, "Jun (जून)": 6, "Jul (जुलै)": 7,
     "Aug (ऑगस्ट)": 8, "Sep (सप्टेंबर)": 9, "Oct (ऑक्टोबर)": 10, "Nov (नोव्हेंबर)": 11, "Dec (डिसेंबर)": 12
-}
-
-if not st.session_state.logged_in:
+    if not st.session_state.logged_in:
     col1, col2, col3 = st.columns([1, 1.5, 1])
     with col2:
         if os.path.exists(LOGO_FILE):
@@ -208,3 +209,53 @@ else:
 
             expense_only = filtered_df[filtered_df["Type"] == "Expense"]
             if not expense_only.empty:
+                g1, g2 = st.columns(2)
+                with g1:
+                    st.plotly_chart(px.pie(expense_only, values="Amount", names="Category", title="Expense Breakdown (%)", hole=0.4), use_container_width=True)
+                with g2:
+                    st.plotly_chart(px.bar(expense_only.groupby("Date")["Amount"].sum().reset_index(), x="Date", y="Amount", title="Daily Expense (₹)"), use_container_width=True)
+
+            display_df = filtered_df[["ID", "Date", "Type", "Category", "Amount", "Note"]][::-1]
+            st.dataframe(display_df, use_container_width=True, hide_index=True)
+
+            d_btn1, d_btn2 = st.columns(2)
+            with d_btn1:
+                pdf_bytes = create_pdf(st.session_state.user_name, st.session_state.user_mobile, display_df, total_income, total_expense, net_balance)
+                st.download_button("📄 Download PDF Report (For Mobile)", data=pdf_bytes, file_name=f"{st.session_state.user_name}_ARPK_Statement.pdf", mime="application/pdf", use_container_width=True, type="primary")
+            with d_btn2:
+                csv = display_df.to_csv(index=False).encode('utf-8-sig')
+                st.download_button("📥 Download Excel / CSV Report", data=csv, file_name=f"{st.session_state.user_name}_ARPK_Report.csv", mime="text/csv", use_container_width=True)
+
+        with st.expander("🗑️ Delete Wrong Entry"):
+            del_id = st.selectbox("Select ID to Delete:", user_df["ID"].tolist())
+            if st.button("Delete Selected ID", type="primary"):
+                df = df[df["ID"] != del_id]
+                save_transactions(df)
+                st.success(f"ID {del_id} Deleted!")
+                st.rerun()
+
+    with st.expander("🔑 Change Password"):
+        old_p = st.text_input("Old Password:", type="password", key="op")
+        new_p = st.text_input("New Password:", type="password", key="np")
+        if st.button("Update Password"):
+            users_df = load_users()
+            idx = users_df[(users_df["Mobile"] == st.session_state.user_mobile) & (users_df["Password"] == old_p)].index
+            if len(idx) > 0 and new_p.strip() != "":
+                users_df.loc[idx, "Password"] = new_p
+                save_users(users_df)
+                st.success("Password Updated!")
+            else:
+                st.error("Check Old Password!")
+
+    with st.expander("👨‍💻 About Developer - Abhijeet Kakade", expanded=True):
+        dev_c1, dev_c2 = st.columns([1, 2.5])
+        with dev_c1:
+            if os.path.exists(DEV_PHOTO):
+                st.image(DEV_PHOTO, width=180)
+            elif os.path.exists(LOGO_FILE):
+                st.image(LOGO_FILE, width=180)
+        with dev_c2:
+            st.subheader("Abhijeet Kakade (अभिजीत काकडे)")
+            st.write("**Founder & Developer - ARPK SmartSpend Pro**")
+            st.write("नमस्कार! वैयक्तिक आणि कौटुंबिक खर्चाचा हिशोब अगदी सोप्या, सुरक्षित आणि स्मार्ट पद्धतीने ठेवता यावा यासाठी मी **ARPK SmartSpend Pro** हे ॲप तयार केले आहे.")
+            st.success("🚀 Made in Maharashtra, India | Developed by Abhijeet Kakade")
