@@ -195,8 +195,8 @@ else:
             filtered_df = filtered_df[filtered_df["Month"] == MONTHS_MAP[selected_month_name]]
 
         if not filtered_df.empty:
-            total_income = filtered_df[filtered_df["Type"].isin(["Income", "उत्पन्न (Income)"])]["Amount"].sum()
-            total_expense = filtered_df[filtered_df["Type"].isin(["Expense", "खर्च (Expense)"])]["Amount"].sum()
+            total_income = filtered_df[filtered_df["Type"] == "Income"]["Amount"].sum()
+            total_expense = filtered_df[filtered_df["Type"] == "Expense"]["Amount"].sum()
             net_balance = total_income - total_expense
             budget_left = monthly_budget - total_expense
 
@@ -209,3 +209,6 @@ else:
             if net_balance > 0:
                 st.write(f"🎯 **Savings Goal Progress (₹{net_balance:,.0f} / ₹{savings_goal:,.0f}):**")
                 st.progress(min(net_balance / savings_goal, 1.0))
+
+            if total_expense > monthly_budget:
+                st.error("⚠️ Warning! Expenses exceeded your monthly budget!")
